@@ -45,9 +45,9 @@ data_final <- data_fosil %>%
             by = c("Entity", "Year", "Code")) %>% 
   left_join(data_income,
             by = c("Entity", "Year", "Code")) %>% 
-   left_join(data_targets,
+  left_join(data_targets,
             by = c("Entity",  "Code")) %>% 
-  drop_na() 
+  drop_na() %>% 
   select("Entity", "Code", "Year.x","Fossil.fuels.....electricity", "Renewables.....electricity", "World.Bank.s.income.classification", "Status.of.net.zero.carbon.emissions.targets") %>%
     rename(Fossil_Fuels = Fossil.fuels.....electricity,
              Renewables = Renewables.....electricity,

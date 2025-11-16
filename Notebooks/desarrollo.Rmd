@@ -1,0 +1,193 @@
+---
+title: "Energias Renovables"
+author: "Equipo 10"
+date: "2025-11-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+	warning = FALSE,
+	error = F,
+  results='hide'
+)
+
+library(ggplot2)
+library(tidyverse)
+library(here)
+library(countrycode)
+library(broom)
+library(esquisse)
+
+# rm(list = ls())
+# gc(reset = TRUE)
+```
+
+
+```{r}
+# Cargando la base con los datos limpios
+datos <- read.csv(here("Data", "Clean", "data.csv"),  row.names = 1)
+```
+
+```{r}
+# Agregando el continene que le conrresponde a cada país
+datos <- datos %>% 
+  dplyr::mutate(
+    Continent = countrycode(
+      Entity,
+      origin = "country.name",
+      destination = "continent")
+  )
+
+#vis_miss(datos)
+```
+
+
+
+# Preguntas guía
+
+1. ¿Qué países tienen mayor proporción de energía renovable?
+```{r}
+# Filtrando los datos del último año registrado y obteniendo el top 10 de los países con mayor proporción de energías renovable.
+top_paises <- datos %>% 
+  dplyr::group_by(Entity) %>%
+  dplyr::filter(Year == max(Year)) %>%
+  ungroup() %>%
+  dplyr::arrange(desc(Renewables)) %>% 
+  dplyr::slice(1:10)
+
+top_paises
+
+#AUN QUEDA PENDIENTE EL GRÁFICO QUE MUESTRE LOS PAISES TOP. 
+```
+
+
+2. ¿Qué tan rápido crece la participación de renovables en el tiempo?
+```{r}
+# Obteniendo las tasas de crecimiento para cada continente a partir regresión lineal
+tc_contientes <- datos %>%
+  dplyr::group_by(Continent) %>%
+  dplyr::reframe(
+    broom::tidy(lm(Renewables ~ Year))
+  ) %>%
+  dplyr::filter(term == "Year") %>% 
+  dplyr::arrange(desc(estimate))
+
+tc_contientes
+
+```
+
+
+```{r}
+# Graficando las tasas de crecimiento
+ggplot(tc_contientes, aes(x = reorder(Continent, estimate), y = estimate)) +
+  geom_segment(aes(xend = Continent, yend = 0), 
+               color = "gray50", linewidth = 1) +
+  geom_point(aes(color = estimate > 0), size = 5) +
+  geom_text(aes(label = sprintf("%+.2f %%/año", estimate)),
+            nudge_x = 0.3, size = 3.5) +
+  coord_flip() +
+  expand_limits(y = c(
+    min(tc_contientes$estimate) * 1.1,
+    max(tc_contientes$estimate) * 1.1
+  )) +
+  labs(
+    title = "Tasa de crecimiento anual por continente",
+    x = NULL,
+    y = NULL
+  ) +
+  scale_color_manual(values = c("TRUE" = "#2E8B57", "FALSE" = "#CD5C5C"), 
+                     guide = "none") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, hjust = 0.5),
+    axis.text.y = element_text(size = 10),
+    panel.grid.major.y = element_blank(),
+    plot.margin = margin(20, 20, 20, 20)
+  )
+```
+
+
+
+3. Qué relación existe entre el desarrollo económico y el uso de energías limpias?
+```{r}
+# Obteniendo la evolución promedio por grupo de ingreso
+tendencia_grupo <- datos %>%
+  dplyr::group_by(Year, Income_Group) %>%
+  dplyr::summarise(
+    Renewables_Avg = mean(Renewables, na.rm = TRUE),
+    .groups = "drop"
+  ) %>% 
+  dplyr::mutate(
+    dplyr::across(
+      where(is.character),
+      ~ gsub(" countries", "", .)
+      )
+    ) %>%
+  dplyr::arrange(desc(Income_Group))
+
+tendencia_grupo
+```
+
+
+```{r}
+# Graficando la tendencia [propuesta 1]
+ggplot(tendencia_grupo, aes(x = Year, y = Renewables_Avg, color = Income_Group)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 1.5) +
+  labs(
+    title = "Tendencia: Energías Renovables por Nivel de Ingreso",
+    x = NULL,
+    y = "% Renovable",
+    color = NULL,
+  ) +
+  scale_color_manual(
+    values = c(
+      "Low-income"           = "#66C2A5",
+      "Lower-middle-income"  = "#FC8D62",  
+      "Upper-middle-income"  = "#8DA0CB",  
+      "High-income"          = "#E78AC3" 
+    )
+  ) +
+  scale_x_continuous(breaks = seq(1988, 2024, 6)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, hjust = 0.5, margin = margin(b = 10)),
+    legend.position = "top",
+    legend.box.spacing = unit(0, "cm"),
+    panel.grid.minor = element_blank(),
+    axis.text = element_text(size = 9),
+    plot.margin = margin(20, 20, 20, 20)
+  )
+```
+
+
+4. ¿Hay diferencias por región?
+```{r}
+
+```
+
+
+
+# Modelo
+
+Crear un modelo para explicar la renewables_share (porcentaje) por país-año con variables económicas y de política energética.
+```{r}
+
+```
+
+
+# Visualización
+
+Desarrollar una visualización que incluya:
+- Tendencias globales
+- Comparativo por país o continente 
+- Indicadores clave y reflexión sobre sostenibilidad 
+- Conclusiones
+```{r}
+
+```
+
+
