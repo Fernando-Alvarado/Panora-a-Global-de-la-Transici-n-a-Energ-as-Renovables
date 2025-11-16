@@ -103,6 +103,7 @@ ggplot(top_renew,
 ```{r}
 # Obteniendo las tasas de crecimiento para cada continente a partir regresión lineal
 tc_contientes <- datos %>%
+  dplyr::filter(Year >= 2000) %>% 
   dplyr::group_by(Continent) %>%
   dplyr::reframe(
     broom::tidy(lm(Renewables ~ Year))
@@ -125,8 +126,8 @@ ggplot(tc_contientes, aes(x = reorder(Continent, estimate), y = estimate)) +
             nudge_x = 0.3, size = 3.5) +
   coord_flip() +
   expand_limits(y = c(
-    min(tc_contientes$estimate) * 1.1,
-    max(tc_contientes$estimate) * 1.1
+    min(tc_contientes$estimate) * 1.2,
+    max(tc_contientes$estimate) * 1.2
   )) +
   labs(
     title = "Crecimiento anual del consumo de energías renovables",
