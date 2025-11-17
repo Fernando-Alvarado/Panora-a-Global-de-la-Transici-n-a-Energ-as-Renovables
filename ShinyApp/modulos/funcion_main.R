@@ -1,5 +1,5 @@
 
-funcion_main <- function(datos){
+funcion_main <- function(datos, año1 = 2024, medida = "sd"){
 
   # Agregando el continente que le conrresponde a cada país
   datos <- datos %>%
@@ -14,10 +14,9 @@ funcion_main <- function(datos){
   # Preguntas guía
   # 1. ¿Qué países tienen mayor proporción de energía renovable?
   # Filtrando los datos del último año registrado y obteniendo el top 15 de los países con mayor proporción de energías renovable.
-  anio_ultimo <- max(datos$Year, na.rm = TRUE)
-  
+    
   top_renew <- datos %>%
-    filter(Year == anio_ultimo) %>%
+    filter(Year == año1) %>% ### Aqui pase el año
     arrange(desc(Renewables)) %>%
     slice_head(n = 15) %>%
     mutate(Entity = fct_reorder(Entity, Renewables))
@@ -42,7 +41,7 @@ funcion_main <- function(datos){
     ) +
     scale_fill_gradient(low = "#a6cee3", high = "#1f78b4") +
     labs(
-      title = paste0("Top 15 países por proporción de energías renovables (", anio_ultimo, ")"),
+      title = paste0("Top 15 países por proporción de energías renovables (", año1, ")"),
       x = "% de energías renovables",
       y = NULL,
       fill = "% renovables"
@@ -155,7 +154,12 @@ funcion_main <- function(datos){
   disp_cont <- energia_paises %>%
     dplyr::group_by(Continent, Year) %>%
     dplyr::summarise(
+
+      #Aqui pon la decision de la medida   -----------------------------------------------------------------------------
+      
       sd_renew = sd(Renewables, na.rm = TRUE),
+
+
       n_paises = dplyr::n(),
       .groups = "drop"
     ) %>%
@@ -184,28 +188,11 @@ funcion_main <- function(datos){
   #-----------------------------------------------------------------------------
   
   resultado <- list(Graf1, Graf2, Graf3, Graf4)
-  
+  #Print hola
   return(resultado)
 }
 
 
-library(ggplot2)
-library(tidyverse)
-library(here)
-library(countrycode)
-library(broom)
-library(esquisse)
-library(forcats)
-library(rpart)
-library(rpart.plot)
-library(Metrics)
-library(knitr)
 
-ruta_actual <- rstudioapi::getActiveDocumentContext()$path
-ruta_base <- paste0( gsub("/ShinyApp/modulos/funcion_main.R", "", ruta_actual), "/Data/Clean/" )
 
 # Cargando la base con los datos limpios
-datos <- read.csv(paste0(ruta_base, "data.csv"),  row.names = 1)
-
-prueba <- funcion_main(datos)
-prueba[1]
