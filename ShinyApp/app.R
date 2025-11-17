@@ -17,7 +17,7 @@ source(here("ShinyApp", "modulos", "funcion_main.R")) # Funcion para traer las g
 datos <- read.csv(here("Data", "Clean", "data.csv")) 
 #------------------------------------------------------------------------------------------------ 
 
-#    
+#    shiny::runApp("ShinyApp")
 
 
 ui <- fluidPage(
