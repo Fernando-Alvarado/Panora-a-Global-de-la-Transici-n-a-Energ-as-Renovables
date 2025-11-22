@@ -1,4 +1,3 @@
-
 library(shiny)
 library(leaflet)
 library(dplyr)
@@ -20,7 +19,7 @@ cols_pal <- list(
   Wind  = "#00BCD4", 
   Hydro = "#1565C0", 
   Bio   = "#2E7D32",
-  Geo   = "#D84315"  
+  Geo   = "#D84315"
 )
 
 to_rgba <- function(hex, alpha = 0.6) {
@@ -29,10 +28,12 @@ to_rgba <- function(hex, alpha = 0.6) {
 }
 
 
+
 cols_def <- list(
   Solar = list(
     gen = "electricity_from_solar_t_wh__solar_energy_consumption",
     share = "solar_percent_equivalent_primary_energy__solar_share_energy",
+    elect = "solar_generation_t_wh__modern_renewable_energy_consumption",
     color = cols_pal$Solar,
     fill  = to_rgba(cols_pal$Solar),
     map_palette = "YlOrRd",
@@ -42,6 +43,7 @@ cols_def <- list(
   Wind = list(
     gen = "electricity_from_wind_t_wh__wind_generation",
     share = "wind_percent_equivalent_primary_energy__wind_share_energy",
+    elect = "wind_generation_t_wh__modern_renewable_energy_consumption",
     color = cols_pal$Wind,
     fill  = to_rgba(cols_pal$Wind),
     map_palette = "PuBu",
@@ -51,6 +53,7 @@ cols_def <- list(
   Hydro = list(
     gen = "electricity_from_hydro_t_wh__hydropower_generation",
     share = "hydro_percent_equivalent_primary_energy__hydro_share_energy",
+    elect = "hydro_generation_t_wh__modern_renewable_energy_consumption",
     color = cols_pal$Hydro,
     fill  = to_rgba(cols_pal$Hydro),
     map_palette = "GnBu",
@@ -60,6 +63,7 @@ cols_def <- list(
   Bio = list(
     gen = "biofuels_production_t_wh__biofuel_production",
     share = NULL, 
+    elect = "other_renewables_including_geothermal_and_biomass_electricity_generation_t_wh__modern_renewable_energy_consumption",
     color = cols_pal$Bio,
     fill  = to_rgba(cols_pal$Bio),
     map_palette = "YlGn",
@@ -79,6 +83,7 @@ cols_def <- list(
 
 
 global_share_col <- "renewables_percent_equivalent_primary_energy__renewable_share_energy"
+
 
 
 er_data <- read.csv("cruce_er_cf.csv", na.strings = c("null", "NA", "")) 
@@ -107,6 +112,7 @@ if ("World" %in% er_clean$entity) {
 }
 
 
+
 cruce_er_por_anio <- er_data |>
   dplyr::filter(entity == "World") |>
   dplyr::mutate(
@@ -126,6 +132,7 @@ cruce_er_por_anio <- er_data |>
     .groups = "drop"
   )
 
+
 primer_anio <- min(cruce_er_por_anio$year, na.rm = TRUE)
 
 base_total_renovables <- cruce_er_por_anio |>
@@ -133,23 +140,23 @@ base_total_renovables <- cruce_er_por_anio |>
   dplyr::pull(total_renovables_twh)
 
 
-
 world_sf <- ne_countries(scale = "medium", returnclass = "sf") %>%
   dplyr::mutate(
     iso_a3 = dplyr::if_else(
       iso_a3 == "-99" & !is.na(adm0_a3),
-      adm0_a3,   # usamos el código “real” del país
+      adm0_a3,
       iso_a3
     )
   ) %>%
   dplyr::select(iso_a3, geometry)
 
 
+
+
 energy_tab_ui <- function(id, title, color, icon_name, description, has_share = TRUE) {
   ns <- NS(id)
 
   tagList(
-
     div(
       class = "card shadow-sm mb-4 border-0",
       div(
@@ -163,11 +170,8 @@ energy_tab_ui <- function(id, title, color, icon_name, description, has_share = 
         p(class = "text-muted mb-0 mt-2 small", description)
       )
     ),
-
-   
     if (has_share) {
       tagList(
-        # CARD 1: mapa + filtros
         div(
           class = "card shadow-sm border-0 mb-2 map-section-card",
           div(
@@ -177,7 +181,7 @@ energy_tab_ui <- function(id, title, color, icon_name, description, has_share = 
                style = "font-weight: 700; margin: 0;"),
             p(
               class = "text-muted mb-0 mt-1 small",
-              "Mapa y series históricas de la cuota de esta fuente en la energía primaria o en la generación eléctrica."
+              "Mapa y series históricas de la participación de esta fuente en el consumo de energía primaria, medida como porcentaje de la energía primaria, mediante el método de sustitución."
             )
           ),
           div(
@@ -202,8 +206,6 @@ energy_tab_ui <- function(id, title, color, icon_name, description, has_share = 
             )
           )
         ),
-
-     
         div(
           class = "card shadow-sm border-0 mb-4 charts-row-card",
           div(
@@ -242,8 +244,6 @@ energy_tab_ui <- function(id, title, color, icon_name, description, has_share = 
         )
       )
     },
-
-   
     div(
       class = "card shadow-sm border-0 mb-2 map-section-card",
       div(
@@ -278,8 +278,6 @@ energy_tab_ui <- function(id, title, color, icon_name, description, has_share = 
         )
       )
     ),
-
-  
     div(
       class = "card shadow-sm border-0 mb-4 charts-row-card",
       div(
@@ -320,8 +318,6 @@ energy_tab_ui <- function(id, title, color, icon_name, description, has_share = 
 }
 
 
-
-
 global_share_tab_ui <- function(id, color) {
   ns <- NS(id)
 
@@ -339,7 +335,6 @@ global_share_tab_ui <- function(id, color) {
     ),
     div(
       class = "card-body bg-light",
-      
       fluidRow(
         column(
           3,
@@ -358,7 +353,6 @@ global_share_tab_ui <- function(id, color) {
           )
         )
       ),
-   
       fluidRow(
         class = "mt-1",
         column(
@@ -400,14 +394,11 @@ global_share_tab_ui <- function(id, color) {
 }
 
 
-
 energy_server_logic <- function(id, tech_key, data_full, world_geo, er_world) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     conf <- cols_def[[tech_key]]
-    selected_iso <- reactiveVal("MEX") 
-    
-    # Selección de país por clic en mapa
+    selected_iso <- reactiveVal("MEX")
     observeEvent(input$map_gen_shape_click, {
       if (!is.null(input$map_gen_shape_click$id)) selected_iso(input$map_gen_shape_click$id)
     })
@@ -426,8 +417,6 @@ energy_server_logic <- function(id, tech_key, data_full, world_geo, er_world) {
       if (length(nm) == 0) return(NULL)
       nm[1]
     })
-    
-    # Títulos dinámicos país seleccionado (share / gen)
     output$country_title_share <- renderText({
       nm <- country_name()
       if (is.null(nm)) "Evolución histórica del país seleccionado (%)"
@@ -439,8 +428,6 @@ energy_server_logic <- function(id, tech_key, data_full, world_geo, er_world) {
       if (is.null(nm)) "Evolución histórica del país seleccionado (TWh)"
       else paste("Evolución histórica (TWh):", nm)
     })
-    
-  
     if (!is.null(conf$share)) {
       output$slider_share_ui <- renderUI({
         sliderInput(
@@ -468,8 +455,6 @@ energy_server_logic <- function(id, tech_key, data_full, world_geo, er_world) {
         step = 1, sep = ""
       )
     })
-    
-  
     render_custom_map <- function(metric = c("gen", "share")) {
       metric <- match.arg(metric)
       renderLeaflet({
@@ -482,7 +467,7 @@ energy_server_logic <- function(id, tech_key, data_full, world_geo, er_world) {
           year_range <- input$year_share_range
         }
         req(year_range)
-        year_input <- year_range[2]  # usamos el año final del rango
+        year_input <- year_range[2]
         
         if (metric == "gen") {
           unit <- "TWh"
@@ -556,10 +541,8 @@ energy_server_logic <- function(id, tech_key, data_full, world_geo, er_world) {
     }
     output$map_gen <- render_custom_map("gen")
     
-   
     if (!is.null(conf$share)) {
       
-     
       output$plot_world_share <- renderPlotly({
         req(input$year_share_range)
         yr <- input$year_share_range
@@ -592,14 +575,13 @@ energy_server_logic <- function(id, tech_key, data_full, world_geo, er_world) {
           )
       })
       
-      # Top 5
       output$plot_top5_share <- renderPlotly({
         req(input$year_share_range)
         yr <- input$year_share_range
         col_name <- conf$share
         unit <- "%"
         
-        year_ref <- yr[2]  
+        year_ref <- yr[2]
         
         top_names <- data_full %>%
           dplyr::filter(year == year_ref, Is_Country) %>%
@@ -637,7 +619,7 @@ energy_server_logic <- function(id, tech_key, data_full, world_geo, er_world) {
           layout(
             title = "",
             xaxis = list(title = ""),
-            yaxis = list(title = unit),
+            yaxis = list(title = "Participación (%)"),
             legend = list(
               orientation = "h", xanchor = "center", x = 0.5, y = -0.6
             ),
@@ -646,7 +628,6 @@ energy_server_logic <- function(id, tech_key, data_full, world_geo, er_world) {
           )
       })
       
- 
       output$plot_country_share <- renderPlotly({
         req(selected_iso(), input$year_share_range)
         yr <- input$year_share_range
@@ -682,13 +663,11 @@ energy_server_logic <- function(id, tech_key, data_full, world_geo, er_world) {
           layout(
             title = "",
             xaxis = list(title = ""),
-            yaxis = list(title = unit),
+            yaxis = list(title = "Participación (%)"),
             hovermode = "x unified"
           )
       })
     }
-    
- 
     output$plot_world_gen <- renderPlotly({
       req(input$year_gen_range)
       yr <- input$year_gen_range
@@ -721,8 +700,6 @@ energy_server_logic <- function(id, tech_key, data_full, world_geo, er_world) {
           hovermode = "x unified"
         )
     })
-    
- 
     output$plot_top5_gen <- renderPlotly({
       req(input$year_gen_range)
       yr <- input$year_gen_range
@@ -775,8 +752,6 @@ energy_server_logic <- function(id, tech_key, data_full, world_geo, er_world) {
           hovermode = "x unified"
         )
     })
-    
- 
     output$plot_country_gen <- renderPlotly({
       req(selected_iso(), input$year_gen_range)
       yr <- input$year_gen_range
@@ -839,8 +814,6 @@ global_share_server <- function(id, data_full, world_geo, er_world, col_name, co
       if (length(nm) == 0) return("Evolución histórica del país seleccionado (%)")
       paste("Evolución histórica (%):", nm[1])
     })
-    
-    # Slider de rango
     output$slider_ui <- renderUI({
       sliderInput(
         ns("year_range"), "Periodo:",
@@ -853,8 +826,6 @@ global_share_server <- function(id, data_full, world_geo, er_world, col_name, co
         step = 1, sep = ""
       )
     })
-    
-
     output$map_share <- renderLeaflet({
       req(input$year_range)
       yr <- input$year_range
@@ -920,8 +891,6 @@ global_share_server <- function(id, data_full, world_geo, er_world, col_name, co
           position = "bottomright", na.label = "Sin información"
         )
     })
-    
-  
     output$plot_world <- renderPlotly({
       req(input$year_range)
       yr <- input$year_range
@@ -952,8 +921,6 @@ global_share_server <- function(id, data_full, world_geo, er_world, col_name, co
           hovermode = "x unified"
         )
     })
-    
-  
     output$plot_top5 <- renderPlotly({
       req(input$year_range)
       yr <- input$year_range
@@ -1011,8 +978,6 @@ global_share_server <- function(id, data_full, world_geo, er_world, col_name, co
           hovermode = "x unified"
         )
     })
-    
-   
     output$plot_country <- renderPlotly({
       req(selected_iso(), input$year_range)
       yr <- input$year_range
@@ -1062,8 +1027,6 @@ ui <- fluidPage(
         border-radius: 4px;
         border: 1px solid #eee;
       }
-
-      /* Layout del navlist lateral */
       .navlayout .col-sm-3 {
         background-color: #e9edf5;
         border-right: 1px solid #d1d7e5;
@@ -1088,22 +1051,14 @@ ui <- fluidPage(
         padding-top: 10px;
         padding-bottom: 10px;
       }
-
-      /* Cards generales un poco más compactas */
       .card-body.bg-light {
         padding-top: 8px;
         padding-bottom: 8px;
       }
-
-      /* Los card internos dentro de fondos grises sin tanto aire */
       .card-body.bg-light .card {
         margin-top: 4px !important;
         margin-bottom: 4px !important;
       }
-
-      /* ---------------- INDICADORES (4 cajitas) ---------------- */
-
-      /* El wrapper ya no es una card grande; solo un row compacto */
       .indicators-row {
         margin-bottom: 0 !important;
       }
@@ -1135,7 +1090,7 @@ ui <- fluidPage(
         font-size: 0.85rem;
         color: #6c757d;
         margin-top: 0.1rem;
-        margin-bottom: 0;      /* clave para que no se vea aire abajo */
+        margin-bottom: 0;
       }
       .ind-icon {
         font-size: 1.1rem;
@@ -1146,26 +1101,19 @@ ui <- fluidPage(
       .ind-success  { border-left-color: #198754; }
       .ind-warning  { border-left-color: #ffc107; }
       .ind-info     { border-left-color: #0dcaf0; }
-
-      /* ---------------- MAPA + 3 GRÁFICAS ---------------- */
-
-      /* Card del mapa (share y generación) */
       .map-section-card .card-body {
         padding-top: 10px;
         padding-bottom: 10px;
       }
       .map-section-card .filters-panel,
       .map-section-card .map-panel {
-        margin-bottom: 0;   /* evita aire raro dentro del card del mapa */
+        margin-bottom: 0;
       }
-
-      /* Card de las 3 gráficas debajo del mapa */
       .charts-row-card .card-body {
         padding-top: 8px;
         padding-bottom: 8px;
       }
 
-      /* Las tarjetitas de cada gráfica */
       .small-chart-card {
         background: #ffffff;
         border-radius: 0.75rem;
@@ -1182,7 +1130,6 @@ ui <- fluidPage(
         font-size: 0.75rem;
       }
 
-      /* Elimina posibles márgenes fantasma debajo de htmlwidgets */
       .leaflet.html-widget, .plotly.html-widget {
         margin-bottom: 0 !important;
       }
@@ -1193,25 +1140,22 @@ ui <- fluidPage(
     class = "container-fluid py-4 text-center shadow-sm mb-4",
     style = "background: linear-gradient(90deg,#1b2838,#283c52); color:#ffffff;",
     h1(
-      "Monitor global de transición energética",
+      "Panorama Global de la Transición a Energías Renovables",
       style = "font-weight: 900; margin-bottom: 8px;"
     ),
     p(
-      "Análisis histórico y proyecciones de la matriz energética mundial basados en Our World in Data y el Energy Institute (2025).",
+      "Análisis histórico y proyecciones de la escena energética mundial.",
       class = "small mb-0",
       style = "opacity: 0.9;"
     )
   ),
   
- 
   div(
     class = "container-fluid navlayout",
     navlistPanel(
       id = "main_nav",
       widths = c(2, 10),
       well = FALSE,
-      
-     
       tabPanel(
         "Panorama global y análisis",
         div(
@@ -1233,16 +1177,14 @@ ui <- fluidPage(
             ),
             div(
               class = "alert alert-light border mb-0 p-3",
-              tags$strong("Nota metodológica – método de sustitución: "),
+              tags$strong("Nota metodológica (método de sustitución): "),
               span(
                 class = "small text-muted",
-                "las métricas de participación en energía primaria siguen la metodología de Our World in Data. La electricidad renovable se convierte a energía primaria equivalente suponiendo la cantidad de combustibles fósiles que habría sido necesaria en centrales térmicas típicas."
+                "Las métricas de participación en energía primaria siguen la metodología de Our World in Data. La electricidad renovable se convierte a energía primaria equivalente suponiendo la cantidad de combustibles fósiles que habría sido necesaria para producirla en centrales térmicas típicas."
               )
             )
           )
         ),
-        
-       
 div(
   class = "card shadow-sm mb-3 border-0",
   div(
@@ -1250,12 +1192,12 @@ div(
     style = "border-top: 3px solid #2c3e50;",
     h5(
       icon("layer-group"),
-      "Composición del mix renovable (TWh)",
+      "Evolución global de la generación de energía eléctrica renovable por fuente (TWh)",
       style = "font-weight: 700; margin: 0;"
     ),
     p(
       class = "text-muted small mb-0 mt-1",
-      "Generación renovable mundial desagregada por fuente (hidro, solar, eólica, biocombustibles y otros renovables modernos)."
+      "Generación eléctrica renovable a nivel mundial, diferenciada por fuente (hidroeléctrica, solar, eólica, biocombustibles modernos y otros renovables modernos), medida en TWh anuales."
     )
   ),
   div(
@@ -1272,7 +1214,6 @@ div(
   )
 ),
 
-
 div(
   class = "mb-3",
   fluidRow(
@@ -1281,11 +1222,11 @@ div(
       width = 3,
       div(
         class = "ind-card ind-primary",
-        h6(icon("leaf", class = "ind-icon"), "Total renovables (TWh) por año"),
+        h6(icon("leaf", class = "ind-icon"), "Producción Anual (TWh)"),
         p(class = "ind-main-value", textOutput("ind_total_renovables")),
         p(
           class = "ind-sub-value",
-          "Incluye hidro, eólica, solar y otros renovables modernos"
+          "Producción anual de energía eléctrica por fuentes renovables en el año más reciente del periodo seleccionado"
         )
       )
     ),
@@ -1293,11 +1234,11 @@ div(
       width = 3,
       div(
         class = "ind-card ind-success",
-        h6(icon("chart-line", class = "ind-icon"), "Crecimiento EN EL PERIODO"),
+        h6(icon("chart-line", class = "ind-icon"), "Crecimiento porcentual en el periodo"),
         p(class = "ind-main-value", textOutput("ind_crecimiento_vs_inicio")),
         p(
           class = "ind-sub-value",
-          "Variación del año más reciente con respecto al primer año del periodo seleccionado"
+          "Crecimiento porcentual de la producción del año más reciente respecto al primer año del periodo seleccionado"
         )
       )
     ),
@@ -1305,11 +1246,11 @@ div(
       width = 3,
       div(
         class = "ind-card ind-warning",
-        h6(icon("layer-group", class = "ind-icon"), "Total renovables acumulado"),
+        h6(icon("layer-group", class = "ind-icon"), "Producción total acumulada (TWh)"),
         p(class = "ind-main-value", textOutput("ind_total_renovablesPorAnio")),
         p(
           class = "ind-sub-value",
-          "Suma histórica hasta el año seleccionado"
+          "Suma histórica de la producción de energía eléctrica, por fuentes renovables, en el periodo seleccionado"
         )
       )
     ),
@@ -1317,17 +1258,17 @@ div(
       width = 3,
       div(
         class = "ind-card ind-info",
-        h6(icon("percent", class = "ind-icon"), "Crecimiento vs año anterior"),
+        h6(icon("percent", class = "ind-icon"), "Crecimiento porcentual interanual"),
         p(class = "ind-main-value", textOutput("comparacion_anios")),
         p(
           class = "ind-sub-value",
-          "Tasa de crecimiento interanual global"
+          "Tasa de crecimiento (de la producción de energía eléctrica por fuentes renovables) del año más reciente del periodo seleccionado en comparación con el año inmediatamente anterior."
         )
       )
     )
   )
 ),
-      
+        
         div(
           class = "card shadow-sm mb-4 border-0",
           div(
@@ -1335,12 +1276,12 @@ div(
             style = "border-top: 3px solid #2c3e50;",
             h5(
               icon("robot"),
-              "Proyección IA: fósiles vs renovables",
+              "Proyección con Redes Neuronales (red LSTM): fósiles vs renovables",
               style = "font-weight: 700; margin: 0;"
             ),
             p(
               class = "text-muted small mb-0 mt-1",
-              "Modelo LSTM aplicado a la participación de combustibles fósiles y renovables en la energía primaria."
+              "Se entrenó un modelo de red neuronal LSTM para estimar la participación futura de combustibles fósiles y energías renovables en la energía primaria."
             )
           ),
           div(
@@ -1352,7 +1293,7 @@ div(
           )
         ),
         
-                
+        
         div(
           class = "card shadow-sm mb-4 border-0",
           div(
@@ -1365,13 +1306,13 @@ div(
             ),
             p(
               class = "text-muted small mb-0 mt-1",
-              "Vista interactiva que combina el ranking de países por participación renovable, el ritmo de crecimiento por continente, la evolución por nivel de ingreso y la dispersión regional en el porcentaje de energías renovables."
+              "Vista interactiva que combina el ranking de países por participación de consumo energético de fuentes renovable, el ritmo de crecimiento por continente, la evolución por nivel de ingreso de los países y la dispersión regional en el porcentaje de energías renovables."
             )
           ),
           div(
             class = "card-body bg-light",
             fluidRow(
-              # --- Columna de filtros ---
+              
               column(
                 3,
                 div(
@@ -1383,16 +1324,16 @@ div(
                   ),
                   p(
                     class = "small text-muted",
-                    "El año de referencia se usa para calcular el top 10 de países y el periodo de crecimiento anual por continente."
+                    "El año máximo seleccionado en el periodo se usa para calcular el top 10 de países y el crecimiento anual por continente."
                   ),
                   uiOutput("global_year_ui")
                 )
               ),
               
-            
+              
               column(
                 9,
-               
+                
                 fluidRow(
                   column(
                     6,
@@ -1416,7 +1357,6 @@ div(
                   )
                 ),
                 
-             
                 fluidRow(
                   column(
                     6,
@@ -1440,7 +1380,7 @@ div(
           )
         ),
 
-               
+                # Bloque combinado: modelo explicativo + desarrollo económico y renovables
         div(
           class = "card shadow-sm mb-4 border-0",
           div(
@@ -1455,19 +1395,18 @@ div(
           div(
             class = "card-body bg-light",
             
-         
             div(
               class = "bg-white rounded shadow-sm p-3 mb-3",
               p(
                 class = "text-muted small mb-2",
-                "Se estimó un modelo de panel dinámico para explicar la participación de energías renovables en la energía primaria equivalente por país y año."
+                "Se estimó un modelo de panel dinámico (feols) para explicar la participación de energías renovables en la energía primaria equivalente por país y año."
               ),
               tags$ul(
                 class = "small text-muted",
                 tags$li(
                   strong("Variable dependiente: "), 
                   tags$code("Renewables"),
-                  " (% de energía primaria equivalente proveniente de renovables modernas por país-año)."
+                  " (% de energía primaria equivalente proveniente de fuentes renovables por país-año)."
                 ),
                 tags$li(
                   strong("Estructura de panel: "),
@@ -1477,25 +1416,25 @@ div(
                 ),
                 tags$li(
                   strong("Componente dinámico (persistencia): "),
-                  "se incluye el rezago de la propia variable, ",
+                  "se incluye el rezago (lag) de la variable, ",
                   tags$code("Renewables_lag"),
-                  " (t–1), que captura la tendencia de cada país a mantener su nivel previo de participación renovable."
+                  " (t-1), que captura la tendencia de cada país a mantener su nivel previo de participación renovable."
                 ),
                 tags$li(
                   strong("Variables económicas: "),
                   "participación de combustibles fósiles en la energía primaria (",
                   tags$code("Fossil_Fuels"),
-                  ") y grupo de ingreso del país (",
+                  ") y grupo de ingreso al que pertenece el país (",
                   tags$code("Income_Group"),
                   ") como aproximación al nivel de desarrollo económico."
                 ),
                 tags$li(
                   strong("Variable de política energética: "),
-                  "distancia al año objetivo de emisiones netas cero (meta ",
+                  "distancia al año objetivo de emisiones cero (meta ",
                   tags$i("net-zero"),
                   "), transformada como término cuadrado en décadas, ",
                   tags$code("(YearsToTarget / 10)^2"),
-                  ", a partir del archivo de metas climáticas por país."
+                  ", a partir del archivo de metas climáticas por país (se relizo de esta forma para evitar colinealidad con la variable temporal)."
                 ),
                 tags$li(
                   strong("País y año en el modelo: "),
@@ -1523,7 +1462,6 @@ div(
               )
             ),
             
-           
             div(
               class = "bg-white rounded shadow-sm p-3 mb-3",
               h6("Indicadores del modelo y relación con el desarrollo económico", 
@@ -1552,10 +1490,50 @@ div(
           )
         ),
 
-      
-        global_share_tab_ui("global_share", color = "#2c3e50")
+        global_share_tab_ui("global_share", color = "#2c3e50"),
+        div(
+  class = "card shadow-sm mb-4 border-0",
+  div(
+    class = "card-header bg-white py-2",
+    style = "border-top: 3px solid #2c3e50;",
+    h5(
+      icon("lightbulb"),
+      "Conclusiones",
+      style = "font-weight: 700; margin: 0;"
+    )
+  ),
+  div(
+    class = "card-body bg-light",
+    div(
+      class = "bg-white rounded shadow-sm p-3",
+      div(
+        class = "small text-muted mb-0",
+        p(
+          "La transición energética global exhibe una dinámica de crecimiento acelerado, aunque desigual. ",
+          "La producción de electricidad de fuentes renovables ha experimentado una fuerte expansión, ",
+          "impulsada por el despliegue masivo de energía solar y eólica. No obstante, esta fuerte expansión ",
+          "aún no se traduce en un cambio fundamental en la producción energética total, donde los combustibles ",
+          "fósiles siguen concentrando la mayor parte del consumo primario, lo que representa el principal ",
+          "obstáculo para la descarbonización en el corto plazo."
+        ),
+        p(
+          "Las diferencias por ingresos son notables, dado que los países con una mejor posición económica ",
+          "lideran el cambio. Nuestro modelo confirma que el bajo ingreso es una barrera clave, limitando la ",
+          "generación de energías renovables y manteniendo la dependencia energética en la quema de combustibles fósiles."
+        ),
+        p(
+          "Para realizar esta transición, es necesario que cada país optimice el aprovechamiento de su potencial ",
+          "de recursos renovables específicos (como la radiación solar, el potencial eólico, la disponibilidad ",
+          "hídrica o geotérmica) según sus características naturales. Finalmente, la proyección del modelo LSTM, ",
+          "al predecir una reducción de combustibles fósiles pero sin un desplazamiento completo de estos en el ",
+          "horizonte de 2044, subraya la urgencia de implementar políticas regulatorias y de inversión más ambiciosas ",
+          "para asegurar una transición completa y equitativa."
+        )
+      )
+    )
+  )
+)
       ),
-      
       
       tabPanel(
         "Energía solar",
@@ -1564,12 +1542,11 @@ div(
           title = "Energía solar",
           color = cols_def$Solar$color,
           icon_name = "sun",
-          description = "La energía solar es una de las tecnologías que más rápido ha crecido, impulsando el aumento de la generación renovable en numerosos países.",
+          description = "La energía solar es una de las fuentes renovables de más rápido crecimiento, y ha impulsado de forma decisiva el aumento de la generación limpia en numerosos países.",
           has_share = TRUE
         )
       ),
       
-     
       tabPanel(
         "Energía eólica",
         energy_tab_ui(
@@ -1577,12 +1554,11 @@ div(
           title = "Energía eólica",
           color = cols_def$Wind$color,
           icon_name = "wind",
-          description = "La energía eólica, terrestre y marina, se ha consolidado como pilar del crecimiento renovable, con un peso creciente en la generación eléctrica.",
+          description = "La generación eléctrica a partir del viento, tanto en parques terrestres como marinos, se ha consolidado como uno de los pilares de la transición energética mundial y gana peso de forma sostenida en la matriz eléctrica global.",
           has_share = TRUE
         )
       ),
       
-     
       tabPanel(
         "Energía hidroeléctrica",
         energy_tab_ui(
@@ -1590,26 +1566,24 @@ div(
           title = "Energía hidroeléctrica",
           color = cols_def$Hydro$color,
           icon_name = "water",
-          description = "La hidroeléctrica sigue siendo la mayor fuente renovable moderna, clave en muchos sistemas eléctricos de baja emisión.",
+          description = "La energía hidroeléctrica permanece como la mayor fuente renovable moderna y es fundamental para la operación de sistemas eléctricos de bajas emisiones.",
           has_share = TRUE
         )
       ),
       
-     
       tabPanel(
         "Biocombustibles",
         energy_tab_ui(
           "bio",
-          title = "Biocombustibles y bioenergía moderna",
+          title = "Biocombustibles modernos",
           color = cols_def$Bio$color,
           icon_name = "leaf",
-          description = "Los biocombustibles líquidos y la bioenergía moderna complementan a otras renovables, especialmente en el sector transporte.",
+          description = "Los biocombustibles líquidos, como el bioetanol y el biodiésel, forman parte de la bioenergía moderna y constituyen un complemento relevante a otras fuentes renovables, en particular en el sector transporte. En las últimas décadas su producción se ha incrementado de forma sostenida en varias economías, impulsada por mandatos de mezcla y políticas de descarbonización. Esta sección se centra en la producción de biocombustibles modernos, excluyendo el uso tradicional de biomasa.",
           has_share = FALSE
         )
       )
     )
   ),
-  
   
   div(
     class = "container-fluid py-3 mt-4 bg-light text-center border-top",
@@ -1655,6 +1629,42 @@ server <- function(input, output, session) {
     df$Fuente <- factor(df$Fuente, levels = total_por_fuente$Fuente)
     df %>% arrange(year)
   })
+
+
+  global_long_tot <- reactive({
+    df <- er_world %>%
+      select(
+        year,
+        Solar = cols_def$Solar$elect,
+        Eólica = cols_def$Wind$elect,
+        Hidro  = cols_def$Hydro$elect,
+        Otras_fuentes  = cols_def$Bio$elect
+      ) %>%
+      pivot_longer(
+        cols = -year,
+        names_to = "Fuente",
+        values_to = "TWh"
+      ) %>%
+      filter(TWh != 0)
+    
+    total_por_fuente <- df %>%
+      group_by(Fuente) %>%
+      summarise(Total = max(TWh, na.rm = TRUE)) %>%
+      arrange(desc(Total))
+    
+    df$Fuente <- factor(df$Fuente, levels = total_por_fuente$Fuente)
+    df %>% arrange(year)
+  })
+
+global_tot_by_year <- reactive({
+  global_long_tot() %>%
+    dplyr::group_by(year) %>%
+    dplyr::summarise(
+      total_TWh = sum(TWh, na.rm = TRUE),
+      .groups = "drop"
+    )
+})
+
   
 output$slider_global_ui <- renderUI({
   dat <- global_long()
@@ -1675,15 +1685,14 @@ output$global_plot <- renderPlotly({
   req(input$anim_year_range)
   yr <- input$anim_year_range
   
-  dat <- global_long() %>%
+  dat <- global_long_tot() %>%
     dplyr::filter(year >= yr[1], year <= yr[2])
   
   cols_g <- c(
     "Solar" = cols_def$Solar$color,
     "Eólica" = cols_def$Wind$color,
     "Hidro"  = cols_def$Hydro$color,
-    "Bio"    = cols_def$Bio$color,
-    "Geo"    = cols_def$Geo$color
+    "Otras_fuentes"    = cols_def$Bio$color
   )
   
   plot_ly(
@@ -1691,7 +1700,7 @@ output$global_plot <- renderPlotly({
     color = ~Fuente, colors = cols_g,
     type = "scatter", mode = "lines+markers",
     fill = "tozeroy",
-    hovertemplate = "<b>%{y:,.0f} TWh</b>"
+    hovertemplate = "<b>%{y:,.2f} TWh</b>"
   ) %>%
     layout(
       yaxis = list(title = "Generación (TWh)"),
@@ -1701,23 +1710,26 @@ output$global_plot <- renderPlotly({
     )
 })
 
-  
-  datos_filtrados <- reactive({
-    req(input$anim_year_range)
-    yr <- input$anim_year_range
-    cruce_er_por_anio |>
-      dplyr::filter(year == yr[2])
-  })
 
+ datos_filtrados <- reactive({
+  req(input$anim_year_range)
+  yr <- input$anim_year_range
   
+  global_tot_by_year() %>%
+    dplyr::filter(year == yr[2])
+})
+
+
+
   output$ind_total_renovables <- renderText({
     df <- datos_filtrados()
     if (nrow(df) == 0) return("Sin datos")
     
-    valor <- df$total_renovables_twh[1]
+    valor <- df$total_TWh[1]
     valor_formateado <- format(round(valor, 1), big.mark = ",")
     paste0(valor_formateado, " TWh")
   })
+
 
   output$ind_crecimiento_vs_inicio <- renderText({
     req(input$anim_year_range)
@@ -1725,16 +1737,18 @@ output$global_plot <- renderPlotly({
     year_ini <- yr[1]
     year_fin <- yr[2]
 
-    df_ini <- cruce_er_por_anio |>
-      dplyr::filter(year == year_ini)
+df_ini <- global_tot_by_year() %>%
+  dplyr::filter(year == year_ini)
 
-    df_fin <- cruce_er_por_anio |>
-      dplyr::filter(year == year_fin)
+df_fin <- global_tot_by_year() %>%
+  dplyr::filter(year == year_fin)
+
 
     if (nrow(df_ini) == 0 || nrow(df_fin) == 0) return("Sin datos")
 
-    base_rango <- df_ini$total_renovables_twh[1]
-    valor_actual <- df_fin$total_renovables_twh[1]
+base_rango   <- df_ini$total_TWh[1]
+valor_actual <- df_fin$total_TWh[1]
+
 
     if (is.na(base_rango) || base_rango == 0) return("Sin datos")
 
@@ -1750,75 +1764,59 @@ output$global_plot <- renderPlotly({
   })
 
 
-  output$ind_total_renovablesPorAnio <- renderText({
-    req(input$anim_year_range)
-    yr <- input$anim_year_range
-    
-    resultadoAño <- er_data |>
-      dplyr::filter(
-        entity == "World",
-        year >= yr[1], year <= yr[2]
-      ) |>
-      dplyr::mutate(
-        total_renovables_anio =
-          electricity_from_wind_t_wh__modern_renewable_prod +
-          electricity_from_hydro_t_wh__modern_renewable_prod +
-          electricity_from_solar_t_wh__modern_renewable_prod +
-          other_renewables_including_bioenergy_t_wh__modern_renewable_prod
-      ) |>
-      dplyr::summarise(
-        total_renovables_anio = sum(total_renovables_anio, na.rm = TRUE)
-      )
-    
-    val <- resultadoAño[["total_renovables_anio"]]
-    paste0(format(round(val, 1), big.mark = ","), " TWh")
-  })
+output$ind_total_renovablesPorAnio <- renderText({
+  req(input$anim_year_range)
+  yr <- input$anim_year_range
+  
+  resultadoAño <- er_data |>
+    dplyr::filter(
+      entity == "World",
+      year >= yr[1], year <= yr[2]
+    ) |>
+    dplyr::mutate(
+      total_renovables_anio =
+        electricity_from_wind_t_wh__modern_renewable_prod +
+        electricity_from_hydro_t_wh__modern_renewable_prod +
+        electricity_from_solar_t_wh__modern_renewable_prod +
+        other_renewables_including_bioenergy_t_wh__modern_renewable_prod
+    ) |>
+    dplyr::summarise(
+      total_renovables_anio = sum(total_renovables_anio, na.rm = TRUE)
+    )
+  
+  val <- resultadoAño[["total_renovables_anio"]]
+  paste0(format(round(val, 1), big.mark = ","), " TWh")
+})
 
 
-  output$comparacion_anios <- renderText({
-    req(input$anim_year_range)
-    yr <- input$anim_year_range
-    year_now <- yr[2]
-    
-    if (year_now <= min(cruce_er_por_anio$year, na.rm = TRUE)) {
-      return("Sin datos")
-    }
-    
-    actual <- er_data |>
-      dplyr::filter(entity == "World", year == year_now) |>
-      dplyr::mutate(
-        total_renovables_anio =
-          electricity_from_wind_t_wh__modern_renewable_prod +
-          electricity_from_hydro_t_wh__modern_renewable_prod +
-          electricity_from_solar_t_wh__modern_renewable_prod +
-          other_renewables_including_bioenergy_t_wh__modern_renewable_prod
-      ) |>
-      dplyr::summarise(
-        total_renovables_anio = sum(total_renovables_anio, na.rm = TRUE)
-      )
-    
-    anterior <- er_data |>
-      dplyr::filter(entity == "World", year == year_now - 1) |>
-      dplyr::mutate(
-        total_renovables_anio =
-          electricity_from_wind_t_wh__modern_renewable_prod +
-          electricity_from_hydro_t_wh__modern_renewable_prod +
-          electricity_from_solar_t_wh__modern_renewable_prod +
-          other_renewables_including_bioenergy_t_wh__modern_renewable_prod
-      ) |>
-      dplyr::summarise(
-        total_renovables_anio = sum(total_renovables_anio, na.rm = TRUE)
-      )
-    
-    val_act <- actual[["total_renovables_anio"]]
-    val_ant <- anterior[["total_renovables_anio"]]
-    
-    if (is.na(val_ant) || val_ant == 0) return("Sin datos")
-    
-    tasa <- (val_act - val_ant) / val_ant * 100
-    paste0(round(tasa, 1), " %")
-  })
 
+output$comparacion_anios <- renderText({
+  req(input$anim_year_range)
+  yr <- input$anim_year_range
+  year_now <- yr[2]
+  
+  df_tot <- global_tot_by_year()
+  
+  if (year_now <= min(df_tot$year, na.rm = TRUE)) {
+    return("Sin datos")
+  }
+  
+  actual <- df_tot %>%
+    dplyr::filter(year == year_now)
+  
+  anterior <- df_tot %>%
+    dplyr::filter(year == year_now - 1)
+  
+  if (nrow(actual) == 0 || nrow(anterior) == 0) return("Sin datos")
+  
+  val_act <- actual$total_TWh[1]
+  val_ant <- anterior$total_TWh[1]
+  
+  if (is.na(val_ant) || val_ant == 0) return("Sin datos")
+  
+  tasa <- (val_act - val_ant) / val_ant * 100
+  paste0(round(tasa, 1), " %")
+})
 
   output$forecast_plot <- renderPlotly({
     p_dat <- pred_data %>%
@@ -1880,14 +1878,13 @@ output$global_plot <- renderPlotly({
       )
   })
 
-  
+
   coef_modelo_panel <- reactive({
     path_coef <- "modelo_panel_coeficientes_con_target_cuadrado.csv"
     if (!file.exists(path_coef)) return(NULL)
     
     df <- read.csv(path_coef, stringsAsFactors = FALSE)
     
-    # Filtramos términos clave del modelo
     df <- df %>%
       dplyr::filter(
         grepl("Renewables_lag|Fossil_Fuels|YearsToTarget_dec_sq|Income_Group::", term)
@@ -1945,7 +1942,6 @@ output$global_plot <- renderPlotly({
   
 
   dev_renew_data <- reactive({
-
     path_fe_country <- "modelo_panel_efectos_fijos_pais_con_target_cuadrado.csv"
     if (!file.exists(path_fe_country)) return(NULL)
     
@@ -1957,7 +1953,6 @@ output$global_plot <- renderPlotly({
       return(NULL)
     }
     
-
     path_data <- "data.csv"
     if (!file.exists(path_data)) return(NULL)
     
@@ -2046,33 +2041,52 @@ output$global_plot <- renderPlotly({
   if (!file.exists(path_data)) return(NULL)
   
   df <- read.csv(path_data, stringsAsFactors = FALSE)
-  if ("...1" %in% names(df)) {
-    df <- df %>% dplyr::select(-`...1`)
-  }
   
-  df %>%
+  if ("...1" %in% names(df)) df <- df %>% dplyr::select(-`...1`)
+  
+  entidades_a_excluir <- c(
+    "ASEAN (Ember)", 
+    "CIS (EI)", 
+    "EU (Ember)", "European Union (27)",
+    "G20 (Ember)", "G7 (Ember)", 
+    "OECD (EI)", "OECD (Ember)", 
+    "Non-OECD (EI)",
+    "Africa", "Africa (EI)", "Africa (Ember)",
+    "Asia", "Asia (Ember)", "Asia Pacific (EI)", "Other Asia Pacific (EI)",
+    "Europe", "Europe (EI)", "Europe (Ember)", "Other Europe (EI)",
+    "Latin America and Caribbean (Ember)", "South and Central America (EI)", "South America",
+    "Middle East (EI)", "Middle East (Ember)", "Other Middle East (EI)",
+    "North America", "North America (EI)", "North America (Ember)",
+    "Oceania", "Oceania (Ember)",
+    "Other CIS (EI)",
+    "High-income countries", 
+    "Low-income countries", 
+    "Lower-middle-income countries", 
+    "Upper-middle-income countries",
+    "World"
+  )
+  
+  df_clean <- df %>%
+    dplyr::filter(!Entity %in% entidades_a_excluir) %>%
     dplyr::mutate(
-      Continent = countrycode(
-        Entity,
-        origin      = "country.name",
-        destination = "continent",
-        warn        = FALSE
-      ),
-      
-      Continent = dplyr::recode(
-        Continent,
-        "Africa"   = "África",
-        "Americas" = "América",
-        "Asia"     = "Asia",
-        "Europe"   = "Europa",
-        "Oceania"  = "Oceanía",
-        .default   = Continent
+      Continent_Match = countrycode(Entity, origin = "country.name", destination = "continent", warn = FALSE)
+    ) %>%
+    dplyr::mutate(
+      Continent = dplyr::case_when(
+        Continent_Match == "Africa"   ~ "África",
+        Continent_Match == "Americas" ~ "América",
+        Continent_Match == "Asia"     ~ "Asia",
+        Continent_Match == "Europe"   ~ "Europa",
+        Continent_Match == "Oceania"  ~ "Oceanía",
+        TRUE                          ~ NA_character_
       )
     ) %>%
-    dplyr::filter(nchar(Code) == 3)
+    dplyr::filter(!is.na(Continent)) %>%
+    dplyr::select(-Continent_Match)
+
+  df_clean
 })
 
-  
 
 output$global_year_ui <- renderUI({
   df <- global_panel_data()
@@ -2092,6 +2106,7 @@ output$global_year_ui <- renderUI({
     width = "100%"
   )
 })
+  
 
 output$global_top10_plot <- renderPlotly({
   df <- global_panel_data()
@@ -2151,7 +2166,7 @@ output$global_top10_plot <- renderPlotly({
 })
 
   
- 
+
 output$global_cont_growth_plot <- renderPlotly({
   df <- global_panel_data()
   req(df, input$global_top_year_range)
@@ -2224,75 +2239,48 @@ output$global_income_trend_plot <- renderPlotly({
   yr <- input$global_top_year_range
   
   trend <- df %>%
-    dplyr::filter(
-      !is.na(Income_Group),
-      Year >= yr[1],
-      Year <= yr[2]
-    ) %>%
+    dplyr::filter(Year >= yr[1], Year <= yr[2]) %>%
     dplyr::group_by(Year, Income_Group) %>%
-    dplyr::summarise(
-      mean_renew = mean(Renewables, na.rm = TRUE),
-      .groups    = "drop"
-    ) %>%
+    dplyr::summarise(mean_renew = mean(Renewables, na.rm = TRUE), .groups = "drop") %>%
     dplyr::mutate(
       Income_Short = dplyr::case_when(
-        Income_Group == "Low-income countries"            ~ "Low-income",
-        Income_Group == "Lower-middle-income countries"   ~ "Lower-middle-income",
-        Income_Group == "Upper-middle-income countries"   ~ "Upper-middle-income",
-        Income_Group == "High-income countries"           ~ "High-income",
-        TRUE                                              ~ Income_Group
+        Income_Group == "Low-income countries"          ~ "Low-income",
+        Income_Group == "Lower-middle-income countries" ~ "Lower-middle",
+        Income_Group == "Upper-middle-income countries" ~ "Upper-middle",
+        Income_Group == "High-income countries"         ~ "High-income",
+        TRUE                                            ~ NA_character_ 
       )
+    ) %>%
+    dplyr::filter(!is.na(Income_Short)) %>%
+    dplyr::mutate(Income_Short = factor(Income_Short, levels = c("Low-income", "Lower-middle", "Upper-middle", "High-income"))) %>%
+    dplyr::mutate(
+      etiqueta_hover = paste0("<b>", Income_Short, "</b><br>Año: ", Year, "<br>Renovables: ", round(mean_renew, 1), " %")
     )
   
   if (nrow(trend) == 0) return(plotly::plotly_empty())
-  
-  col_income <- c(
-    "Low-income"           = "#66C2A5",
-    "Lower-middle-income"  = "#FC8D62",
-    "Upper-middle-income"  = "#8DA0CB",
-    "High-income"          = "#E78AC3"
-  )
-  
+  col_income <- c("Low-income" = "#66C2A5", "Lower-middle" = "#FC8D62", "Upper-middle" = "#8DA0CB", "High-income" = "#E78AC3")
   plotly::plot_ly(
-    trend,
-    x          = ~Year,
-    y          = ~mean_renew,
-    color      = ~Income_Short,
-    colors     = col_income,
-    type       = "scatter",
-    mode       = "lines+markers",
-    line       = list(width = 2),
-    marker     = list(size = 4),
-    customdata = ~Income_Short,        # para el hover (nombre del grupo)
-    hovertemplate = paste0(
-      "<b>%{customdata}</b><br>",
-      "Año: %{x}<br>",
-      "Media renovables: %{y:.1f} %<extra></extra>"
-    )
+    data = trend,
+    x = ~Year,
+    y = ~mean_renew,
+    split = ~Income_Short,
+    type = 'scatter',
+    mode = 'lines+markers',
+    color = ~Income_Short,
+    colors = col_income,
+    text = ~etiqueta_hover,
+    hoverinfo = "text",
+    hovertemplate = "%{text}<extra></extra>"
   ) %>%
     plotly::layout(
-      xaxis = list(
-        title = "",
-        dtick = 4
-      ),
-      yaxis = list(
-        title     = "% de energía renovable (media anual)",
-        rangemode = "tozero",
-        titlefont = list(size = 9),
-        tickfont  = list(size = 9)
-      ),
-      legend = list(
-        orientation = "h",
-        x = 0.5,
-        xanchor = "center",
-        y = -0.5
-      ),
-      margin = list(l = 90, r = 20, t = 10, b = 70)
+      xaxis = list(title = "", dtick = 5),
+      yaxis = list(title = "% Energía Renovable", titlefont = list(size = 10)),
+      legend = list(orientation = "h", x = 0.5, xanchor = "center", y = -0.2),
+      margin = list(l = 60, r = 20, t = 20, b = 50)
     )
 })
 
-
-
+#4
   
 output$global_region_disp_plot <- renderPlotly({
   df <- global_panel_data()
@@ -2340,14 +2328,11 @@ output$global_region_disp_plot <- renderPlotly({
     )
 })
 
-  
-
   energy_server_logic("solar", "Solar", er_clean, world_sf, er_world)
   energy_server_logic("wind",  "Wind",  er_clean, world_sf, er_world)
   energy_server_logic("hydro", "Hydro", er_clean, world_sf, er_world)
   energy_server_logic("bio",   "Bio",   er_clean, world_sf, er_world)
   
-  # Bloque global de share renovables
   global_share_server(
     "global_share",
     data_full = er_clean,
@@ -2357,5 +2342,6 @@ output$global_region_disp_plot <- renderPlotly({
     color     = "#2c3e50"
   )
 }
+
 
 shinyApp(ui, server)
