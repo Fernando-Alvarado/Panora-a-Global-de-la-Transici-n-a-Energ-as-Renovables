@@ -34,7 +34,7 @@ RENEWABLE-ENERGY/
 
 ```
 
-## 3. Tecnologías Utilizadas
+## 4. Tecnologías Utilizadas
 
 * **Lenguaje:** R
 
