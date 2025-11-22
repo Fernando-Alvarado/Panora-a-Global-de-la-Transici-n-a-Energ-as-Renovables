@@ -25,20 +25,13 @@ La estructura del repositorio está diseñada para separar el flujo de trabajo d
 ```text
 RENEWABLE-ENERGY/
 │
-├── Data/                            # Almacenamiento de datos
-│   ├── Clean/                       # Datos procesados y listos para usar (data.csv)
-│   ├── Raw/                         # Datos crudos originales (fuentes primarias)
-│   └── models/                      # Objetos de modelos entrenados guardados (.rds/.RData)
+├── Data/                            # Datos limpios y crudos
 │
-├── Notebooks/                       # Área de trabajo y experimentación
-│   ├── cleaning.Rmd                 # Script RMarkdown para ETL (Extracción, Transformación y Limpieza)
-│   └── desarrollo.Rmd               # Pruebas de gráficos, ajuste de modelos y validación
+├── Procesamiento/                   # Códigos para procesar la información y generar variables y tablas nuevas
+│ 
 │
-├── ShinyApp/                        # Carpeta de PRODUCCIÓN (Despliegue)
-│   ├── app.r                        # Código fuente principal del Dashboard (UI & Server)
-│   ├── data.csv                     # Copia de los datos limpios necesaria para el deploy
-│   ├── modelo_panel...              # Archivos de los modelos econométricos importados
-│   └── predicciones_lstm...         # Resultados de las proyecciones de IA
+├── ShinyApp/                        # Carpeta de PRODUCCIÓN del Dashboard (Despliegue)
+
 │
 └── Organizacion/                    # Documentación y gestión del proyecto
     ├── Data/                        # Metadatos
